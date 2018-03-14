@@ -1,0 +1,44 @@
+# Sets up the cluster for a brand new collection of Docker Swarm managers
+#
+
+# Get Swarm status from Swarm managers
+- hosts: "tag_Role_manager:&tag_CoreOS_true:&tag_Name_docker_swarm_node_manager*"
+  become: true
+
+  tasks:
+    - name: Check Docker Swarm status in managers
+      shell: docker info -f {% raw %}'{{.Swarm.LocalNodeState}}'{% endraw %}
+      register: swarm_status
+
+# Swarm manager leader
+- hosts: "tag_Name_docker_swarm_node_manager_0*:&tag_CoreOS_true:&tag_Role_manager"
+  become: true
+
+  tasks:
+    - name: Initialize Leader Manager of Cluster
+      shell: docker swarm init
+      when: swarm_status.stdout != "active"
+      # ignore_errors: yes # Needed in case you run the playbook twice -- you can only initialize the swarm the first time
+
+    - name: Gather join-token for managers
+      register: join_token_manager
+      shell: docker swarm join-token -q manager
+
+# Join Swarm managers, not in leader
+- hosts: "tag_Role_manager:&tag_Name_docker_swarm_node_manager*:&tag_CoreOS_true:!tag_Name_docker_swarm_node_manager_0*"
+  become: true
+
+  tasks:
+    - name: Join Manager to Cluster
+      shell: "docker swarm join --token {{ hostvars[groups['tag_Name_docker_swarm_node_manager_0'][0]]['join_token_manager']['stdout'] }} {{ hostvars[groups['tag_Name_docker_swarm_node_manager_0'][0]]['ec2_private_ip_address'] }}:2377"
+      when: swarm_status.stdout != "active"
+
+# Drain Swarm managers for disable run docker containers
+# Uncomment if you need disable managers for run containers
+# - hosts: "tag_Role_manager:&tag_Name_docker_swarm_node_manager*:&tag_CoreOS_true"
+#   become: true
+
+#   tasks:
+#     - name: Drain Swarm mangers
+#       # when: "'node-manager-0' not in ec2_tag_Name"
+#       shell: docker node update --availability drain $(docker info --format {% raw %}'{{.Swarm.NodeID}}'){% endraw %}

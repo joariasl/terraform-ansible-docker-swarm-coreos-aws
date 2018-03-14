@@ -1,0 +1,11 @@
+ssh_authorized_key_path = "~/.ssh/id_rsa.pub"
+
+ami_coreos = "ami-78e96b00"
+
+manager_instance_type = "t2.micro"
+
+worker_instance_type = "t2.micro"
+
+managers_number = 3
+
+workers_number = 5

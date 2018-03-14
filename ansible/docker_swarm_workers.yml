@@ -1,0 +1,26 @@
+# Sets up the cluster for a brand new collection of Docker Swarm workers
+#
+
+- hosts: "tag_Name_docker_swarm_node_manager_0*:&tag_CoreOS_true:&tag_Role_manager"
+  become: true
+
+  tasks:
+    - name: Check Docker Swarm status
+      shell: docker info -f {% raw %}'{{.Swarm.LocalNodeState}}'{% endraw %}
+      register: swarm_status
+
+    - name: Gather join-token for workers
+      register: join_token_worker
+      shell: docker swarm join-token -q worker
+
+- hosts: "tag_Role_worker:&tag_Name_docker_swarm_node_worker*"
+  become: true
+
+  tasks:
+    - name: Check Docker Swarm status in workers
+      shell: docker info -f {% raw %}'{{.Swarm.LocalNodeState}}'{% endraw %}
+      register: swarm_status
+
+    - name: Join Worker Cluster
+      shell: "docker swarm join --token {{ hostvars[groups['tag_Name_docker_swarm_node_manager_0'][0]]['join_token_worker']['stdout'] }} {{ hostvars[groups['tag_Name_docker_swarm_node_manager_0'][0]]['ec2_private_ip_address'] }}:2377"
+      when: swarm_status.stdout != "active"
