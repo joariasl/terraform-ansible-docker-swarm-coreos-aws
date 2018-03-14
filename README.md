@@ -10,3 +10,8 @@ Check the Docker Swarm status connecting to a node manager and running:
 ```
 docker node ls
 ```
+
+Check if etcd for managers is working:
+```
+etcdctl member list
+```

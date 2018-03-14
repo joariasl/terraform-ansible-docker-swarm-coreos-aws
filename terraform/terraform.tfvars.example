@@ -1,3 +1,7 @@
+# Generate a new token for each unique cluster from https://discovery.etcd.io/new?size=3
+# specify the initial size of your cluster with ?size=X
+discovery_etcd_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
 ssh_authorized_key_path = "~/.ssh/id_rsa.pub"
 
 ami_coreos = "ami-78e96b00"
