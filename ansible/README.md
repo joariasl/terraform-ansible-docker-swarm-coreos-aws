@@ -20,7 +20,6 @@ export AWS_ACCESS_KEY_ID="anaccesskey"
 export AWS_SECRET_ACCESS_KEY="asecretkey"
 export AWS_DEFAULT_REGION="us-west-2"
 
-ANSIBLE_HOST_KEY_CHECKING=False \
 ansible-playbook -i ./ec2.py \
     coreos_python.yml \
     docker_swarm_managers.yml \
